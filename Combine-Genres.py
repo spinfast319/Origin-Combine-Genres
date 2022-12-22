@@ -18,7 +18,7 @@ import mutagen  # Imports functionality to get metadata from music files
 
 #  Set your directories here
 album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
-log_directory = "M:\PROCESS-LOGS\Logs"  # Which directory do you want the log in?
+log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
