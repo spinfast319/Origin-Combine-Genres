@@ -26,17 +26,6 @@ log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want
 # The default is 1
 album_depth = 1
 
-# Set whether you are retagging albums that are various artist, dj, or normal
-# Setting this to 1 will only set the Album Artist to the artist name which will be Various Artists
-# Setting this to 2 will set the Album Artist tag to the DJ name
-# Setting this to 3 will set both Album Artist and Artist tag to the artists name
-# 1 = VA
-# 2 = DJ
-# 3 = Normal
-# BE CAREFULL you could accidentally overwrite metadata that will be hard to get back if you have it set to 3
-# The default is 1
-album_type = 3
-
 # Establishes the counters for completed albums and missing origin files
 count = 0
 total_count = 0
@@ -87,18 +76,18 @@ def error_exists(error_type):
 # A function that writes a summary of what the script did at the end of the process
 def summary_text():
     global count
-    global total_count
-    global error_message
-    global parse_error
-    global bad_missing
-    global good_missing
-    global origin_old
+    #global total_count
+    #global error_message
+    #global parse_error
+    #global bad_missing
+    #global good_missing
+    #global origin_old
 
     print("")
-    print(f"This script wrote tags to {count} tracks from {total_count} albums.")
+    #print(f"This script wrote tags to {count} tracks from {total_count} albums.")
     print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
 
-    error_status = error_exists(parse_error)
+    '''error_status = error_exists(parse_error)
     print(f"--{error_status}: There were {parse_error} albums skipped due to not being able to open the yaml. Redownload the yaml file.")
     error_status = error_exists(origin_old)
     print(f"--{error_status}: There were {origin_old} origin files that do not have the needed metadata and need to be updated.")
@@ -110,7 +99,7 @@ def summary_text():
     if error_message >= 1:
         print("Check the logs to see which folders had errors and what they were and which tracks had metadata written to them.")
     else:
-        print("There were no errors.")
+        print("There were no errors.")'''
 
 
 # A function to check whether the directory is a an album or a sub-directory and returns an origin file location and album name
@@ -244,21 +233,7 @@ def get_metadata(directory, origin_location, album_name):
             print("--You are using the correct version of gazelle-origin.")
 
             # turn the data into variables
-            origin_metadata = {
-                "artist_name": data["Artist"],
-                "album_name": data["Name"],
-                "release_type": data["Release type"],
-                "edition": data["Edition"],
-                "edition_label": data["Record label"],
-                "edition_cat": data["Catalog number"],
-                "edition_year": data["Edition year"],
-                "djs": data["DJs"],
-                "composers": data["Composers"],
-                "conductors": data["Conductors"],
-                "original_year": data["Original year"],
-                "media": data["Media"],
-                "dl_directory": data["Directory"],
-            }
+            origin_metadata = data["Tags"]
             f.close()
             return origin_metadata
         else:
@@ -283,64 +258,48 @@ def get_metadata(directory, origin_location, album_name):
         bad_missing += 1  # variable will increment every loop iteration
 
 
-def write_tags(directory, origin_metadata, album_name):
+def check_genre(directory, album_name):
     global count
-    global album_type
 
-    print("--Retagging files.")
-    # Clear the list so the log captures just this albums tracks
-    retag_list = []
+    print("--Checking for genre tag.")
 
-    if origin_metadata != None:
-        # Loop through the directory and rename flac files
-        for fname in os.listdir(directory):
-            if fname.endswith(".flac"):
-                tag_metadata = mutagen.File(fname)
+    # Open track in directory and see if genre tag is populated
+    for fname in os.listdir(directory):
+        if fname.endswith(".flac"):
+            tag_metadata = mutagen.File(fname)
+            if "GENRE" not in tag_metadata:
+                print (f"--The album {album_name} does not have a genre tag.")
+            else:    
                 print(f"--Track Name: {fname}")
-                # log track that was retagged
-                retag_list.append(f"--Track Name: {fname}")
-                #  retag the metadata
-                if origin_metadata["artist_name"] != None and album_type == 1:
-                    tag_metadata["ALBUM ARTIST"] = origin_metadata["artist_name"]
-                if origin_metadata["djs"] != None and album_type == 2:
-                    tag_metadata["ALBUM ARTIST"] = origin_metadata["djs"]
-                if origin_metadata["artist_name"] != None and album_type == 3:
-                    tag_metadata["ALBUM ARTIST"] = origin_metadata["artist_name"]
-                    tag_metadata["ARTIST"] = origin_metadata["artist_name"]
-                if origin_metadata["album_name"] != None:
-                    tag_metadata["ALBUM"] = origin_metadata["album_name"]
-                if origin_metadata["release_type"] != None:
-                    tag_metadata["GROUPING"] = origin_metadata["release_type"]
-                if origin_metadata["edition_label"] != None:
-                    tag_metadata["ORGANIZATION"] = origin_metadata["edition_label"]
-                if origin_metadata["edition_cat"] != None:
-                    tag_metadata["LABELNO"] = origin_metadata["edition_cat"]
-                    tag_metadata["CATALOGNUMBER"] = origin_metadata["edition_cat"]
-                if origin_metadata["media"] != None:
-                    tag_metadata["MEDIA"] = str(origin_metadata["media"])
-                if origin_metadata["original_year"] != None:
-                    tag_metadata["ORIGINALDATE"] = str(origin_metadata["original_year"])
-                    tag_metadata["YEAR"] = str(origin_metadata["original_year"])
-                if origin_metadata["edition_year"] != None:
-                    tag_metadata["DATE"] = str(origin_metadata["edition_year"])
-                elif origin_metadata["edition_year"] == None and origin_metadata["original_year"] != None:
-                    tag_metadata["DATE"] = str(origin_metadata["original_year"])
-                tag_metadata.save()
+                #  check genre tag
+                if tag_metadata["GENRE"] != None:
+                    genre = tag_metadata["GENRE"]
+                    #make genre lowercase
+                    genre_lower = [tag.lower() for tag in genre]
+                    genre_list = ', '.join(genre_lower)
+                    print (f" The genre tag is {genre_list}.")
+                    return genre_lower
+                else:
+                    print ("No tag.")
+                    pass
                 count += 1  # variable will increment every loop iteration
-    else:
-        print(f"Origin metadata unexpectedly missing.")
-
-    # figure out how many tracks were renamed
-    tracks_retagged = len(retag_list)
-    if tracks_retagged != 0:
-        print(f"--Tracks Retagged: {tracks_retagged}")
-    else:
-        print(f"--There were no flac in this folder.")
+    
+'''
     # log the album the name change
     log_name = "files_retagged"
     log_message = f"had {tracks_retagged} files retagged"
     log_list = retag_list
-    log_outcomes(directory, log_name, log_message, log_list)
+    log_outcomes(directory, log_name, log_message, log_list)'''
+
+def compare_write(genre_vorbis, genre_origin, album_name):
+    global count
+    
+    for i in genre_vorbis:
+        if i in genre_origin:
+            print("Genre already in origin")
+        else:
+            print(f"We need to add {i} to the origin file")
+            
 
 
 # The main function that controls the flow of the script
@@ -349,34 +308,44 @@ def main():
     try:
         # intro text
         print("")
-        print("I will shred this universe down to its last atom and then, with the stones you've collected for me, create a new one...")
+        print("Join me, and together...")
         print("")
 
         # Get all the subdirectories of album_directory recursively and store them in a list:
         directories = [os.path.abspath(x[0]) for x in os.walk(album_directory)]
         directories.remove(os.path.abspath(album_directory))  # If you don't want your main directory included
 
-        #  Run a loop that goes into each directory identified in the list and runs the function that sorts the folders
+        #  Run a loop that goes into each directory identified in the list and runs the genre merging process
         for i in directories:
             os.chdir(i)  # Change working Directory
             print("")
-            print("Retagging starting.")
+            print("Merging genres starting.")
             # establish directory level
             origin_location, album_name = level_check(i)
             # check for flac
             is_flac = flac_check(i)
-            # check for meta data and sort
+            # check if vorbis tag for genre is populated
+            # open orgin file
+            # check if genre tag is already listed
+            # write genre to tag key value pair
             if is_flac == True:
-                origin_metadata = get_metadata(i, origin_location, album_name)
-                write_tags(i, origin_metadata, album_name)
-                print("Retagging complete.")
+                genre_vorbis = check_genre(i, album_name)
+                if genre_vorbis != None:
+                    print("Go to next step")
+                    genre_origin = get_metadata(i, origin_location, album_name)
+                    print(genre_origin)
+                    compare_write(genre_vorbis, genre_origin, album_name)
+                else: 
+                    print("No genre tag.")
+                #write_tags(i, origin_metadata, album_name)
+                print("Genre tags merged.")
             else:
-                print("No retagging.")
+                print("No flac files.")
 
     finally:
         # Summary text
         print("")
-        print("...It is not what is lost but only what it is been given... a grateful universal.")
+        print("...we can rule the galaxy as father and son.")
         # run summary text function to provide error messages
         summary_text()
         print("")
