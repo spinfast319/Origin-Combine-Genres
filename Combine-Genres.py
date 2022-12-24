@@ -17,7 +17,7 @@ import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums1"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
@@ -287,7 +287,8 @@ def check_genre(directory, album_name):
         if fname.endswith(".flac"):
             tag_metadata = mutagen.File(fname)
             if "GENRE" not in tag_metadata:
-                print (f"--The album {album_name} does not have a genre tag.")
+                #print(f"--The album {album_name} does not have a genre tag.")
+                print("The genre tag is NONE.")
                 break
             else:    
                 print(f"--Track Name: {fname}")
@@ -314,11 +315,34 @@ def check_genre(directory, album_name):
     log_list = retag_list
     log_outcomes(directory, log_name, log_message, log_list)'''
     
+# A function to remove any null values from strings
+def clean_string_null(string_to_clean):
+    each_char = list(string_to_clean)
+    clean_track = []
+    for i in each_char:
+        if i == "\x00":
+            print("--Bad character removed")
+        else:
+            clean_track.append(i)
+    clean_string = "".join(clean_track)
+    return clean_string    
+    
+    
 def clean_genre(genre):    
     #make genre lowercase
     genre_lower = [tag.lower() for tag in genre]
     #replace / with ,
     genre_noslash = [tag.replace("/", ",") for tag in genre_lower]
+    #replace // with ,
+    genre_noslash = [tag.replace("//", ",") for tag in genre_noslash]
+    #replace /// with ,
+    genre_noslash = [tag.replace("///", ",") for tag in genre_noslash]
+    #replace //// with ,
+    genre_noslash = [tag.replace("////", ",") for tag in genre_noslash]
+    #replace \\ with ,
+    genre_noslash = [tag.replace("\\", ",") for tag in genre_noslash]
+    #replace \\\\ with ,
+    genre_noslash = [tag.replace("\\\\", ",") for tag in genre_noslash]
     #replace ; with ,
     genre_nosemi = [tag.replace(";", ",") for tag in genre_noslash]
     #turn list into string
@@ -328,13 +352,56 @@ def clean_genre(genre):
     #strip tags
     genre_strip = [tag.strip() for tag in genre_list]
     #remove null characters
+    gernre_nonull = [clean_string_null(tag) for tag in genre_strip]
     #replace - with .
-    genre_nodash = [tag.replace("-", ".") for tag in genre_strip]
-    #replace space with .
+    genre_nodash = [tag.replace("-", ".") for tag in gernre_nonull]
+    #replace _ with .
+    genre_nounder = [tag.replace("_", ".") for tag in genre_nodash]
     #replace & with and
-    #fix drum and bass
-    #fix melodic house & techno
-    return genre_nodash
+    genre_noamp = [tag.replace("&", "and") for tag in genre_nounder]      
+    #replace dnb with drum.and.bass  
+    genre_clean = [tag.replace("dnb", "drum.and.bass") for tag in genre_noamp]    
+    #replace d n b with drum.and.bass  
+    genre_clean = [tag.replace("d n b", "drum.and.bass") for tag in genre_clean]
+    #replace dandb with drum.and.bass  
+    genre_clean = [tag.replace("dandb", "drum.and.bass") for tag in genre_clean]
+    #replace d and b with drum.and.bass  
+    genre_clean = [tag.replace("d and b", "drum.and.bass") for tag in genre_clean]
+    #replace drumnbass with drum.and.bass  
+    genre_clean = [tag.replace("rhythmnblues", "drum.and.bass") for tag in genre_clean]
+    #replace drumandbass with drum.and.bass  
+    genre_clean = [tag.replace("rhythmandblues", "drum.and.bass") for tag in genre_clean]
+    #replace jungle with drum.and.bass
+    genre_clean = [tag.replace("jungle", "drum.and.bass") for tag in genre_clean] 
+    #replace rnb with rhythm.and.blues  
+    genre_clean = [tag.replace("rnb", "rhythm.and.blues") for tag in genre_clean]    
+    #replace r n b with rhythm.and.blues  
+    genre_clean = [tag.replace("r n b", "rhythm.and.blues") for tag in genre_clean]
+    #replace randb with rhythm.and.blues  
+    genre_clean = [tag.replace("randb", "rhythm.and.blues") for tag in genre_clean]
+    #replace r and b with rhythm.and.blues  
+    genre_clean = [tag.replace("r and b", "rhythm.and.blues") for tag in genre_clean]
+    #replace rhythmnblues with rhythm.and.blues  
+    genre_clean = [tag.replace("rhythmnblues", "rhythm.and.blues") for tag in genre_clean]
+    #replace rhythmandblues with rhythm.and.blues  
+    genre_clean = [tag.replace("rhythmandblues", "rhythm.and.blues") for tag in genre_clean]
+    #replace world with world.music  
+    genre_clean = [tag.replace("world", "world.music") for tag in genre_clean]
+    #replace worldmusic with world.music  
+    genre_clean = [tag.replace("worldmusic", "world.music") for tag in genre_clean]
+    #replace down tempo with downtempo    
+    genre_clean = [tag.replace("down tempo", "downtempo") for tag in genre_clean] 
+    #replace rap with hip.hop  
+    genre_clean = [tag.replace("rap", "hip.hop") for tag in genre_clean]
+    #replace avantgarde with avant.garde  
+    genre_clean = [tag.replace("avantgarde", "avant.garde") for tag in genre_clean]
+    #replace triphop with trip.hop  
+    genre_clean = [tag.replace("triphop", "trip.hop") for tag in genre_clean]
+    #replace ambiant with ambient  
+    genre_clean = [tag.replace("ambiant", "ambient") for tag in genre_clean]
+    #replace space with .
+    genre_nospace = [tag.replace(" ", ".") for tag in genre_clean] 
+    return genre_nospace
 
 def compare_write(genre_vorbis, genre_origin, album_name):
     global count
@@ -381,12 +448,12 @@ def main():
             # write genre to tag key value pair
             if is_flac == True:
                 genre_vorbis = check_genre(i, album_name)
-                #if genre_vorbis != None:
-                    #genre_origin = get_metadata(i, origin_location, album_name)
-                    #if genre_origin != None:
-                     #   compare_write(genre_vorbis, genre_origin, album_name)
-                #else: 
-                 #   print("No genre tag.")
+                if genre_vorbis != None:
+                    genre_origin = get_metadata(i, origin_location, album_name)
+                    if genre_origin != None:
+                        compare_write(genre_vorbis, genre_origin, album_name)
+                else: 
+                    print("No genre tag.")
                 #write_tags(i, origin_metadata, album_name)
             else:
                 print("No flac files.")
