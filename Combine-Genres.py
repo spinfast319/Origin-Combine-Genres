@@ -294,13 +294,14 @@ def check_genre(directory, album_name):
                 #  check genre tag
                 if tag_metadata["GENRE"] != None:
                     genre = tag_metadata["GENRE"]
-                    #make genre lowercase
-                    genre_lower = [tag.lower() for tag in genre]
+                    print(genre)
+                    cleaned_genre = clean_genre(genre)
+                    
                     # this is for the output and nothing else.
-                    print(genre_lower)
-                    genre_list = ', '.join(genre_lower)
+                    print(cleaned_genre)
+                    genre_list = ', '.join(cleaned_genre)
                     print (f" The genre tag is {genre_list}.")
-                    return genre_lower
+                    return cleaned_genre
                 else:
                     print ("No tag.")
                     break
@@ -312,6 +313,28 @@ def check_genre(directory, album_name):
     log_message = f"had {tracks_retagged} files retagged"
     log_list = retag_list
     log_outcomes(directory, log_name, log_message, log_list)'''
+    
+def clean_genre(genre):    
+    #make genre lowercase
+    genre_lower = [tag.lower() for tag in genre]
+    #replace / with ,
+    genre_noslash = [tag.replace("/", ",") for tag in genre_lower]
+    #replace ; with ,
+    genre_nosemi = [tag.replace(";", ",") for tag in genre_noslash]
+    #turn list into string
+    genre_string = ', '.join(genre_nosemi)
+    #turn string into list seperating tags by comma
+    genre_list = genre_string.split(',')
+    #strip tags
+    genre_strip = [tag.strip() for tag in genre_list]
+    #remove null characters
+    #replace - with .
+    genre_nodash = [tag.replace("-", ".") for tag in genre_strip]
+    #replace space with .
+    #replace & with and
+    #fix drum and bass
+    #fix melodic house & techno
+    return genre_nodash
 
 def compare_write(genre_vorbis, genre_origin, album_name):
     global count
