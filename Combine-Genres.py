@@ -17,7 +17,7 @@ import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums1"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
@@ -34,6 +34,7 @@ good_missing = 0
 bad_missing = 0
 parse_error = 0
 origin_old = 0
+missing_origin_genre = 0
 
 # identifies album directory level
 path_segments = album_directory.split(os.sep)
@@ -76,30 +77,33 @@ def error_exists(error_type):
 # A function that writes a summary of what the script did at the end of the process
 def summary_text():
     global count
-    #global total_count
-    #global error_message
-    #global parse_error
-    #global bad_missing
-    #global good_missing
-    #global origin_old
+    global total_count
+    global error_message
+    global parse_error
+    global bad_missing
+    global good_missing
+    global origin_old
+    global missing_origin_genre
 
     print("")
     #print(f"This script wrote tags to {count} tracks from {total_count} albums.")
     print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
 
-    '''error_status = error_exists(parse_error)
+    error_status = error_exists(parse_error)
     print(f"--{error_status}: There were {parse_error} albums skipped due to not being able to open the yaml. Redownload the yaml file.")
     error_status = error_exists(origin_old)
     print(f"--{error_status}: There were {origin_old} origin files that do not have the needed metadata and need to be updated.")
     error_status = error_exists(bad_missing)
     print(f"--{error_status}: There were {bad_missing} folders missing an origin files that should have had them.")
+    error_status = error_exists(missing_origin_genre)
+    print(f"--{error_status}: There were {missing_origin_genre} folders missing genre tags in their origin files.")
     error_status = error_exists(good_missing)
     print(f"--Info: Some folders didn't have origin files and probably shouldn't have origin files. {good_missing} of these folders were identified.")
 
     if error_message >= 1:
         print("Check the logs to see which folders had errors and what they were and which tracks had metadata written to them.")
     else:
-        print("There were no errors.")'''
+        print("There were no errors.")
 
 
 # A function to check whether the directory is a an album or a sub-directory and returns an origin file location and album name
@@ -204,6 +208,7 @@ def get_metadata(directory, origin_location, album_name):
     global parse_error
     global origin_old
     global bad_missing
+    global missing_origin_genre
 
     print(f"--Getting metadata for {album_name}")
     print(f"--From: {origin_location}")
@@ -232,10 +237,24 @@ def get_metadata(directory, origin_location, album_name):
         if "Cover" in data.keys():
             print("--You are using the correct version of gazelle-origin.")
 
-            # turn the data into variables
-            origin_metadata = data["Tags"]
-            f.close()
-            return origin_metadata
+            # turn the data into variable 
+            origin_genre = data["Tags"]
+            if origin_genre != None:
+                # remove spaces in comma delimited string
+                origin_genre = origin_genre.replace(" ", "")
+                # turn string into list
+                origin_genre = origin_genre.split(',')
+                f.close()
+                return origin_genre
+            else:
+                # log the missing genre tag information in origin file
+                print("--There are no genre tags in the origin file.")
+                print("--Logged missing genre tag in origin file.")
+                log_name = "missing_origin_genre"
+                log_message = "genre tag missing in origin file"
+                log_list = None
+                log_outcomes(directory, log_name, log_message, log_list)
+                missing_origin_genre += 1  # variable will increment every loop iteration
         else:
             print("--You need to update your origin files with more metadata.")
             print("--Switch to the gazelle-origin fork here: https://github.com/spinfast319/gazelle-origin")
@@ -269,6 +288,7 @@ def check_genre(directory, album_name):
             tag_metadata = mutagen.File(fname)
             if "GENRE" not in tag_metadata:
                 print (f"--The album {album_name} does not have a genre tag.")
+                break
             else:    
                 print(f"--Track Name: {fname}")
                 #  check genre tag
@@ -276,12 +296,14 @@ def check_genre(directory, album_name):
                     genre = tag_metadata["GENRE"]
                     #make genre lowercase
                     genre_lower = [tag.lower() for tag in genre]
+                    # this is for the output and nothing else.
+                    print(genre_lower)
                     genre_list = ', '.join(genre_lower)
                     print (f" The genre tag is {genre_list}.")
                     return genre_lower
                 else:
                     print ("No tag.")
-                    pass
+                    break
                 count += 1  # variable will increment every loop iteration
     
 '''
@@ -293,12 +315,18 @@ def check_genre(directory, album_name):
 
 def compare_write(genre_vorbis, genre_origin, album_name):
     global count
+    print("LOOK HERE")
+    print(genre_vorbis)
+    print(genre_origin)
     
     for i in genre_vorbis:
         if i in genre_origin:
             print("Genre already in origin")
         else:
-            print(f"We need to add {i} to the origin file")
+            print(f"--Adding {i} to the gengre tags in origin file")
+            genre_origin.append(i)
+            
+    print(genre_origin)       
             
 
 
@@ -330,15 +358,13 @@ def main():
             # write genre to tag key value pair
             if is_flac == True:
                 genre_vorbis = check_genre(i, album_name)
-                if genre_vorbis != None:
-                    print("Go to next step")
-                    genre_origin = get_metadata(i, origin_location, album_name)
-                    print(genre_origin)
-                    compare_write(genre_vorbis, genre_origin, album_name)
-                else: 
-                    print("No genre tag.")
+                #if genre_vorbis != None:
+                    #genre_origin = get_metadata(i, origin_location, album_name)
+                    #if genre_origin != None:
+                     #   compare_write(genre_vorbis, genre_origin, album_name)
+                #else: 
+                 #   print("No genre tag.")
                 #write_tags(i, origin_metadata, album_name)
-                print("Genre tags merged.")
             else:
                 print("No flac files.")
 
