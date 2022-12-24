@@ -17,7 +17,7 @@ import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Test Albums 83"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
@@ -329,26 +329,31 @@ def clean_string_null(string_to_clean):
     
     
 def clean_genre(genre):    
+    #this first part standardizes the seperating characters around commas
     #make genre lowercase
     genre_lower = [tag.lower() for tag in genre]
-    #replace / with ,
-    genre_noslash = [tag.replace("/", ",") for tag in genre_lower]
-    #replace // with ,
-    genre_noslash = [tag.replace("//", ",") for tag in genre_noslash]
+    #replace //// with ,
+    genre_noslash = [tag.replace("////", ",") for tag in genre_lower]
     #replace /// with ,
     genre_noslash = [tag.replace("///", ",") for tag in genre_noslash]
-    #replace //// with ,
-    genre_noslash = [tag.replace("////", ",") for tag in genre_noslash]
-    #replace \\ with ,
-    genre_noslash = [tag.replace("\\", ",") for tag in genre_noslash]
+    #replace // with ,
+    genre_noslash = [tag.replace("//", ",") for tag in genre_noslash]
+    #replace / with ,
+    genre_noslash = [tag.replace("/", ",") for tag in genre_noslash]
     #replace \\\\ with ,
     genre_noslash = [tag.replace("\\\\", ",") for tag in genre_noslash]
+    #replace \\ with ,
+    genre_noslash = [tag.replace("\\", ",") for tag in genre_noslash]
     #replace ; with ,
     genre_nosemi = [tag.replace(";", ",") for tag in genre_noslash]
+    
+    #this second part uses the standardized seperators to make a new list with each item independent
     #turn list into string
     genre_string = ', '.join(genre_nosemi)
     #turn string into list seperating tags by comma
     genre_list = genre_string.split(',')
+    
+    #this third part cleans or standardizes each genre tag
     #strip tags
     genre_strip = [tag.strip() for tag in genre_list]
     #remove null characters
