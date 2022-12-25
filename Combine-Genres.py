@@ -17,7 +17,7 @@ import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Test Albums 83"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums1"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
@@ -86,6 +86,7 @@ def summary_text():
     global missing_origin_genre
 
     print("")
+    print(f"This script looked at {count} albums for tags.")
     #print(f"This script wrote tags to {count} tracks from {total_count} albums.")
     print("This script looks for potential missing files or errors. The following messages outline whether any were found.")
 
@@ -280,40 +281,58 @@ def get_metadata(directory, origin_location, album_name):
 def check_genre(directory, album_name):
     global count
 
-    print("--Checking for genre tag.")
+    print("--Checking for genre, style and mood tags.")
 
     # Open track in directory and see if genre tag is populated
     for fname in os.listdir(directory):
         if fname.endswith(".flac"):
+            count += 1  # variable will increment every loop iteration
+            missing_count = 0
+            genre = []
             tag_metadata = mutagen.File(fname)
-            if "GENRE" not in tag_metadata:
-                #print(f"--The album {album_name} does not have a genre tag.")
-                print("The genre tag is NONE.")
+            if "GENRE" in tag_metadata:
+                print("--Genre tag found.")
+                genre.extend(tag_metadata["GENRE"])
+                print(genre)
+            else: 
+                print("--No genre tag.")
+                missing_count += 1
+            if "STYLE" in tag_metadata:
+                print("--Style tag found.")
+                genre.extend(tag_metadata["STYLE"])
+                print(tag_metadata["STYLE"])
+            else: 
+                print("--No style tag.")
+                missing_count += 1  
+            if "MOOD" in tag_metadata:
+                print("--Mood tag found.")
+                genre.extend(tag_metadata["MOOD"])
+                print(tag_metadata["MOOD"])
+            else: 
+                print("--No mood tag.")
+                missing_count += 1
+            
+            if missing_count == 3:
+                print("No vorbis tags found.")
                 break
-            else:    
-                print(f"--Track Name: {fname}")
-                #  check genre tag
-                if tag_metadata["GENRE"] != None:
-                    genre = tag_metadata["GENRE"]
-                    print(genre)
-                    cleaned_genre = clean_genre(genre)
-                    
-                    # this is for the output and nothing else.
-                    print(cleaned_genre)
-                    genre_list = ', '.join(cleaned_genre)
-                    print (f" The genre tag is {genre_list}.")
-                    return cleaned_genre
-                else:
-                    print ("No tag.")
-                    break
-                count += 1  # variable will increment every loop iteration
+            else:
+                print("--Combined genre, style and mood tags.")
+                print(genre)
+                cleaned_genre = clean_genre(genre)
+                # this is for the output and nothing else.
+                print("--Cleaned tags.")
+                print(cleaned_genre)
+                genre_list = ', '.join(cleaned_genre)
+                #print (f" The genre tag is {genre_list}.")
+                return cleaned_genre
     
 '''
     # log the album the name change
     log_name = "files_retagged"
     log_message = f"had {tracks_retagged} files retagged"
     log_list = retag_list
-    log_outcomes(directory, log_name, log_message, log_list)'''
+    log_outcomes(directory, log_name, log_message, log_list)'''           
+    
     
 # A function to remove any null values from strings
 def clean_string_null(string_to_clean):
@@ -410,17 +429,19 @@ def clean_genre(genre):
 
 def compare_write(genre_vorbis, genre_origin, album_name):
     global count
-    print("LOOK HERE")
+    print("--Origin tags found.")
     print(genre_vorbis)
     print(genre_origin)
     
     for i in genre_vorbis:
         if i in genre_origin:
-            print("Genre already in origin")
+            pass
+            #print(f"--Genre {i} already in origin")
         else:
-            print(f"--Adding {i} to the gengre tags in origin file")
+            #print(f"--Adding {i} to the genre tags in origin file")
             genre_origin.append(i)
-            
+    
+    #print("--The vorbis and origin tags have been cleaned and combined.")        
     print(genre_origin)       
             
 
