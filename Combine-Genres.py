@@ -17,7 +17,7 @@ import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums1"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums6"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
@@ -224,10 +224,10 @@ def get_origin_genre(directory, origin_location, album_name):
             with open(origin_location, encoding="utf-8") as f:
                 data = yaml.load(f, Loader=yaml.FullLoader)
         except:
-            print("--There was an issue parsing the yaml file and the cover could not be downloaded.")
-            print("--Logged missing cover due to parse error. Redownload origin file.")
+            print("--There was an issue parsing the yaml file and the metadata could not be accessed.")
+            print("--Logged parse error. Redownload origin file.")
             log_name = "parse-error"
-            log_message = "had an error parsing the yaml and the cover art could not be downloaded. Redownload the origin file"
+            log_message = "had an error parsing the yaml and the metadata could not be accessed. Redownload the origin file"
             log_list = None
             log_outcomes(directory, log_name, log_message, log_list)
             parse_error += 1  # variable will increment every loop iteration
@@ -378,6 +378,8 @@ def clean_genre(genre):
     genre_clean = [tag.replace("dnb", "drum.and.bass") for tag in genre_noamp]
     # replace d n b with drum.and.bass
     genre_clean = [tag.replace("d n b", "drum.and.bass") for tag in genre_clean]
+    # replace drum n bass with drum.and.bass
+    genre_clean = [tag.replace("drum n bass", "drum.and.bass") for tag in genre_clean]
     # replace dandb with drum.and.bass
     genre_clean = [tag.replace("dandb", "drum.and.bass") for tag in genre_clean]
     # replace d and b with drum.and.bass
@@ -392,6 +394,8 @@ def clean_genre(genre):
     genre_clean = [tag.replace("rnb", "rhythm.and.blues") for tag in genre_clean]
     # replace r n b with rhythm.and.blues
     genre_clean = [tag.replace("r n b", "rhythm.and.blues") for tag in genre_clean]
+    # replace rythym n blues with rhythm.and.blues
+    genre_clean = [tag.replace("rythym n blues", "rhythm.and.blues") for tag in genre_clean]
     # replace randb with rhythm.and.blues
     genre_clean = [tag.replace("randb", "rhythm.and.blues") for tag in genre_clean]
     # replace r and b with rhythm.and.blues
@@ -412,6 +416,8 @@ def clean_genre(genre):
     genre_clean = [tag.replace("avantgarde", "avant.garde") for tag in genre_clean]
     # replace triphop with trip.hop
     genre_clean = [tag.replace("triphop", "trip.hop") for tag in genre_clean]
+    # replace electronica with electronic
+    genre_clean = [tag.replace("electronica", "electronic") for tag in genre_clean]
     # replace ambiant with ambient
     genre_clean = [tag.replace("ambiant", "ambient") for tag in genre_clean]
     # replace space with .
