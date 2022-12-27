@@ -8,16 +8,19 @@
 
 # Before running this script install the dependencies
 # pip install mutagen
+# pip install ruamel.yaml
 
 # Import dependencies
 import os  # Imports functionality that let's you interact with your operating system
-import yaml  # Imports yaml
+#import yaml  # Imports yaml
+import ruamel.yaml  # Imports yaml
 import shutil  # Imports functionality that lets you copy files and directory
 import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
+from pathlib import Path # Imports functionality to allow paths to automatically be rewritten for different OSs
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums6"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums100"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
@@ -150,7 +153,6 @@ def level_check(directory):
         return origin_location, album_name
 
 
-# Rethink this so it checks all files and if any end in flac go forth
 # A function to check whether a directory has flac and should be checked further
 def flac_check(directory):
 
@@ -221,8 +223,10 @@ def get_origin_genre(directory, origin_location, album_name):
         print("--The origin file location is valid.")
         # open the yaml
         try:
-            with open(origin_location, encoding="utf-8") as f:
-                data = yaml.load(f, Loader=yaml.FullLoader)
+            yaml_file = Path(origin_location)
+            yaml = ruamel.yaml.YAML()  
+            data = yaml.load(yaml_file)            
+                
         except:
             print("--There was an issue parsing the yaml file and the metadata could not be accessed.")
             print("--Logged parse error. Redownload origin file.")
@@ -243,7 +247,6 @@ def get_origin_genre(directory, origin_location, album_name):
                 origin_genre = origin_genre.replace(" ", "")
                 # turn string into list
                 origin_genre = origin_genre.split(",")
-                f.close()
                 return origin_genre
             else:
                 # log the missing genre tag information in origin file
@@ -277,7 +280,7 @@ def get_origin_genre(directory, origin_location, album_name):
 
 
 # A function to get the vorbis genre, style and mood tags
-def check_vorbis_genre(directory, album_name):
+def get_vorbis_genre(directory, album_name):
 
     print("--Checking for genre, style and mood tags.")
 
@@ -418,6 +421,8 @@ def clean_genre(genre):
     genre_clean = [tag.replace("triphop", "trip.hop") for tag in genre_clean]
     # replace electronica with electronic
     genre_clean = [tag.replace("electronica", "electronic") for tag in genre_clean]
+    # replace house deep with deep.house
+    genre_clean = [tag.replace("house deep", "deep.house") for tag in genre_clean]
     # replace ambiant with ambient
     genre_clean = [tag.replace("ambiant", "ambient") for tag in genre_clean]
     # replace space with .
@@ -469,7 +474,7 @@ def main():
             is_flac = flac_check(i)
             if is_flac == True:
                 # check if vorbis tag for genre is populated
-                genre_vorbis = check_vorbis_genre(i, album_name)
+                genre_vorbis = get_vorbis_genre(i, album_name)
                 if genre_vorbis != None:
                     # open orgin file
                     genre_origin = get_origin_genre(i, origin_location, album_name)
