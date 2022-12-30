@@ -1,6 +1,6 @@
 # Combine Genres
 # author: hypermodified
-# This python script loops through a directory, looks at whether there is data in the genre vorbis tag and if there is opens  amd adds ot tp the associated origin file
+# This python script loops through a directory, looks at whether there is data in the genre vorbis tag and if there is opens it and adds it to the associated origin file.
 # This script add the genre to the Tags field in the orgin file.
 # This has only been tested to work with flac files.
 # It can handle albums with artwork folders or multiple disc folders in them. It can also handle specials characters.
@@ -16,13 +16,13 @@ import ruamel.yaml  # Imports the ruamel fork of yaml
 import shutil  # Imports functionality that lets you copy files and directory
 import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
-import csv # Imports functionality to parse CSV files
+import csv  # Imports functionality to parse CSV files
 
 
 #  Set your directories here
 album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
-RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv" # Set the location of the RED-alias.csv file.
+RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv"  # Set the location of the RED-alias.csv file.
 
 # Set whether you are using nested folders or have all albums in one directory here
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
@@ -208,8 +208,9 @@ def check_file(directory):
 # This function changes the emitter in the yaml dump to use ~ rather than null or blank
 def _represent_none(self, data):
     if len(self.represented_objects) == 0 and not self.serializer.use_explicit_start:
-        return self.represent_scalar('tag:yaml.org,2002:null', 'null')
-    return self.represent_scalar('tag:yaml.org,2002:null', "~")
+        return self.represent_scalar("tag:yaml.org,2002:null", "null")
+    return self.represent_scalar("tag:yaml.org,2002:null", "~")
+
 
 #  A function that gets the directory and then opens the origin file and extracts the needed variables
 def get_origin_genre(directory, origin_location, album_name):
@@ -230,14 +231,14 @@ def get_origin_genre(directory, origin_location, album_name):
         print("--The origin file location is valid.")
         # open the yaml
         try:
-            yaml = ruamel.yaml.YAML()  
+            yaml = ruamel.yaml.YAML()
             yaml.preserve_quotes = True
             yaml.allow_unicode = True
-            yaml.encoding="utf-8"
+            yaml.encoding = "utf-8"
             yaml.width = 4096
             with open(origin_location, encoding="utf-8") as f:
-                data = yaml.load(f)         
-                
+                data = yaml.load(f)
+
         except:
             print("--There was an issue parsing the yaml file and the metadata could not be accessed.")
             print("--Logged parse error. Redownload origin file.")
@@ -438,6 +439,7 @@ def clean_genre(genre):
     cleaned_genre = [RED_alias(tag) for tag in genre_nospace]
     return cleaned_genre
 
+
 # A function to use RED alias tags to have consistency in genres
 def RED_alias(genre):
     global RED_alias_list
@@ -446,13 +448,13 @@ def RED_alias(genre):
     with open(RED_alias_list, encoding="utf-8") as f:
         reader = csv.reader(f)
         RED_list = list(tuple(line) for line in reader)
-    
+
     #  Loop through the list and replace any term with it's proper alias
     for i in RED_list:
         if genre == i[0]:
             genre = i[1]
             print("--Standardized with RED alias")
-   
+
     return genre
 
 
@@ -462,7 +464,7 @@ def merge_genres(genre_vorbis, genre_origin, album_name):
     print("--Origin tags found.")
     print(genre_vorbis)
     print(genre_origin)
-    
+
     # Set a flag to check whether the origin genre is updated
     diff_flag = False
 
@@ -474,41 +476,42 @@ def merge_genres(genre_vorbis, genre_origin, album_name):
             # print(f"--Adding {i} to the genre tags in origin file")
             genre_origin.append(i)
             diff_flag = True
-            
+
     # print("--The vorbis and origin tags have been cleaned and combined.")
     print(genre_origin)
     return genre_origin, diff_flag
 
 
-def write_origin(all_genres, origin_location):    
+def write_origin(all_genres, origin_location):
     global count
 
     # Turn genre list into a string
     genre_string = ", ".join(all_genres)
-    
-    #Load custom representer and yaml config
+
+    # Load custom representer and yaml config
     ruamel.yaml.representer.RoundTripRepresenter.add_representer(type(None), _represent_none)
     yaml = ruamel.yaml.YAML()
     yaml.preserve_quotes = True
     yaml.allow_unicode = True
-    yaml.encoding="utf-8"
+    yaml.encoding = "utf-8"
     yaml.width = 4096
-    
+
     # Open origin.yaml file
     with open(origin_location, encoding="utf-8") as f:
         data = yaml.load(f)
         print("--Opened yaml")
-    
-    # Update origin.yaml key value for tags  
-    data['Tags'] = genre_string
+
+    # Update origin.yaml key value for tags
+    data["Tags"] = genre_string
     print("--Updated yaml")
-    
+
     # Write new origin.yaml file
     with open(origin_location, "w", encoding="utf-8") as f:
         yaml.dump(data, f)
         print("--Wrote yaml")
         print("Genre tags have been merged successfully.")
         count += 1  # variable will increment every loop iteration
+
 
 # The main function that controls the flow of the script
 def main():
@@ -543,7 +546,7 @@ def main():
                     elif genre_origin == "genre.missing":
                         # if the origin file does not have a genre and the vorbis exists then write vorbis tag to origin
                         write_origin(genre_vorbis, origin_location)
-                    else:     
+                    else:
                         # merge the genre tags
                         all_genres, diff_flag = merge_genres(genre_vorbis, genre_origin, album_name)
                         # if there is an update write genre to tag key value pair
