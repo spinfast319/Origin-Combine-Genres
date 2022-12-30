@@ -12,15 +12,15 @@
 
 # Import dependencies
 import os  # Imports functionality that let's you interact with your operating system
-#import yaml  # Imports yaml
-import ruamel.yaml  # Imports yaml
+import ruamel.yaml  # Imports the ruamel fork of yaml
 import shutil  # Imports functionality that lets you copy files and directory
 import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
-from pathlib import Path # Imports functionality to allow paths to automatically be rewritten for different OSs
+import csv # Imports functionality to parse CSV files
+
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums100"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
@@ -204,6 +204,12 @@ def check_file(directory):
             return False
 
 
+# This function changes the emitter in the yaml dump to use ~ rather than null or blank
+def _represent_none(self, data):
+    if len(self.represented_objects) == 0 and not self.serializer.use_explicit_start:
+        return self.represent_scalar('tag:yaml.org,2002:null', 'null')
+    return self.represent_scalar('tag:yaml.org,2002:null', "~")
+
 #  A function that gets the directory and then opens the origin file and extracts the needed variables
 def get_origin_genre(directory, origin_location, album_name):
     global parse_error
@@ -223,9 +229,13 @@ def get_origin_genre(directory, origin_location, album_name):
         print("--The origin file location is valid.")
         # open the yaml
         try:
-            yaml_file = Path(origin_location)
             yaml = ruamel.yaml.YAML()  
-            data = yaml.load(yaml_file)            
+            yaml.preserve_quotes = True
+            yaml.allow_unicode = True
+            yaml.encoding="utf-8"
+            yaml.width = 4096
+            with open(origin_location, encoding="utf-8") as f:
+                data = yaml.load(f)         
                 
         except:
             print("--There was an issue parsing the yaml file and the metadata could not be accessed.")
@@ -257,6 +267,8 @@ def get_origin_genre(directory, origin_location, album_name):
                 log_list = None
                 log_outcomes(directory, log_name, log_message, log_list)
                 missing_origin_genre += 1  # variable will increment every loop iteration
+                origin_genre = "genre.missing"
+                return origin_genre
         else:
             print("--You need to update your origin files with more metadata.")
             print("--Switch to the gazelle-origin fork here: https://github.com/spinfast319/gazelle-origin")
@@ -268,15 +280,6 @@ def get_origin_genre(directory, origin_location, album_name):
             log_list = None
             log_outcomes(directory, log_name, log_message, log_list)
             origin_old += 1  # variable will increment every loop iteration
-    else:
-        # log the missing origin file folders that are not likely supposed to be missing
-        print("--An origin file is missing from a folder that should have one.")
-        print("--Logged missing origin file.")
-        log_name = "bad-missing-origin"
-        log_message = "origin file is missing from a folder that should have one"
-        log_list = None
-        log_outcomes(directory, log_name, log_message, log_list)
-        bad_missing += 1  # variable will increment every loop iteration
 
 
 # A function to get the vorbis genre, style and mood tags
@@ -357,8 +360,12 @@ def clean_genre(genre):
     genre_noslash = [tag.replace("\\\\", ",") for tag in genre_noslash]
     # replace \\ with ,
     genre_noslash = [tag.replace("\\", ",") for tag in genre_noslash]
+    # replace | with ,
+    genre_nopipe = [tag.replace("|", ",") for tag in genre_noslash]
+    # replace ｜ with ,
+    genre_nopipe = [tag.replace("｜", ",") for tag in genre_nopipe]
     # replace ; with ,
-    genre_nosemi = [tag.replace(";", ",") for tag in genre_noslash]
+    genre_nosemi = [tag.replace(";", ",") for tag in genre_nopipe]
 
     # this second part uses the standardized seperators to make a new list with each item independent
     # turn list into string
@@ -429,13 +436,27 @@ def clean_genre(genre):
     genre_nospace = [tag.replace(" ", ".") for tag in genre_clean]
     return genre_nospace
 
+# A function to use RED alias tags to have consistency in genres
+def RED_alias(genre):
+
+    # Open CSV of alias mappings, create list of tuples
+    RED_alias = 'RED-alias.csv'
+    with open(RED_alias, encoding="utf-8") as f:
+        reader = csv.reader(f)
+        RED_list = list(tuple(line) for line in reader)
+        
+    print(RED_list)    
+
 
 # A function to compare and merge the vorbis and origin genre tags
 def merge_genres(genre_vorbis, genre_origin, album_name):
-    global count
+
     print("--Origin tags found.")
     print(genre_vorbis)
     print(genre_origin)
+    
+    # Set a flag to check whether the origin genre is updated
+    diff_flag = False
 
     for i in genre_vorbis:
         if i in genre_origin:
@@ -444,11 +465,41 @@ def merge_genres(genre_vorbis, genre_origin, album_name):
         else:
             # print(f"--Adding {i} to the genre tags in origin file")
             genre_origin.append(i)
-
+            diff_flag = True
+            
     # print("--The vorbis and origin tags have been cleaned and combined.")
     print(genre_origin)
-    count += 1  # variable will increment every loop iteration
+    return genre_origin, diff_flag
 
+
+def write_origin(all_genres, origin_location):    
+    global count
+
+    # Turn genre list into a string
+    genre_string = ", ".join(all_genres)
+    
+    #Load custom representer and yaml config
+    ruamel.yaml.representer.RoundTripRepresenter.add_representer(type(None), _represent_none)
+    yaml = ruamel.yaml.YAML()
+    yaml.preserve_quotes = True
+    yaml.allow_unicode = True
+    yaml.encoding="utf-8"
+    yaml.width = 4096
+    
+    # Open origin.yaml file
+    with open(origin_location, encoding="utf-8") as f:
+        data = yaml.load(f)
+        print("--opened yaml")
+    
+    # Update origin.yaml key value for tags  
+    data['Tags'] = genre_string
+    print("--updated yaml")
+    
+    # Write new origin.yaml file
+    with open(origin_location, "w", encoding="utf-8") as f:
+        yaml.dump(data, f)
+        print("--wrote yaml")
+        count += 1  # variable will increment every loop iteration
 
 # The main function that controls the flow of the script
 def main():
@@ -478,13 +529,21 @@ def main():
                 if genre_vorbis != None:
                     # open orgin file
                     genre_origin = get_origin_genre(i, origin_location, album_name)
-                    if genre_origin != None:
+                    if genre_origin == None:
+                        pass
+                    elif genre_origin == "genre.missing":
+                        # if the origin file does not have a genre and the vorbis exists then write vorbis tag to origin
+                        write_origin(genre_vorbis, origin_location)
+                    else:     
                         # merge the genre tags
-                        merge_genres(genre_vorbis, genre_origin, album_name)
-                        # write genre to tag key value pair
+                        all_genres, diff_flag = merge_genres(genre_vorbis, genre_origin, album_name)
+                        # if there is an update write genre to tag key value pair
+                        if diff_flag == True:
+                            write_origin(all_genres, origin_location)
+                        else:
+                            print("No new genre tags to add to origin genre")
                 else:
                     print("No genre tag.")
-                # write_tags(i, origin_metadata, album_name)
             else:
                 print("No flac files.")
 
