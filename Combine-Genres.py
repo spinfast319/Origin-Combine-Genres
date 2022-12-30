@@ -22,6 +22,7 @@ import csv # Imports functionality to parse CSV files
 #  Set your directories here
 album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
+RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv" # Set the location of the RED-alias.csv file.
 
 # Set whether you are using nested folders or have all albums in one directory here
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
@@ -321,6 +322,7 @@ def get_vorbis_genre(directory, album_name):
             else:
                 print("--Combined genre, style and mood tags.")
                 print(genre)
+                # Clean and standardize the genre
                 cleaned_genre = clean_genre(genre)
                 # this is for the output and nothing else.
                 print("--Cleaned tags.")
@@ -420,8 +422,6 @@ def clean_genre(genre):
     genre_clean = [tag.replace("worldmusic", "world.music") for tag in genre_clean]
     # replace down tempo with downtempo
     genre_clean = [tag.replace("down tempo", "downtempo") for tag in genre_clean]
-    # replace rap with hip.hop
-    genre_clean = [tag.replace("rap", "hip.hop") for tag in genre_clean]
     # replace avantgarde with avant.garde
     genre_clean = [tag.replace("avantgarde", "avant.garde") for tag in genre_clean]
     # replace triphop with trip.hop
@@ -434,18 +434,26 @@ def clean_genre(genre):
     genre_clean = [tag.replace("ambiant", "ambient") for tag in genre_clean]
     # replace space with .
     genre_nospace = [tag.replace(" ", ".") for tag in genre_clean]
-    return genre_nospace
+    # standardize tag spelling against RED alias mapping
+    cleaned_genre = [RED_alias(tag) for tag in genre_nospace]
+    return cleaned_genre
 
 # A function to use RED alias tags to have consistency in genres
 def RED_alias(genre):
+    global RED_alias_list
 
     # Open CSV of alias mappings, create list of tuples
-    RED_alias = 'RED-alias.csv'
-    with open(RED_alias, encoding="utf-8") as f:
+    with open(RED_alias_list, encoding="utf-8") as f:
         reader = csv.reader(f)
         RED_list = list(tuple(line) for line in reader)
-        
-    print(RED_list)    
+    
+    #  Loop through the list and replace any term with it's proper alias
+    for i in RED_list:
+        if genre == i[0]:
+            genre = i[1]
+            print("--Standardized with RED alias")
+   
+    return genre
 
 
 # A function to compare and merge the vorbis and origin genre tags
@@ -489,16 +497,17 @@ def write_origin(all_genres, origin_location):
     # Open origin.yaml file
     with open(origin_location, encoding="utf-8") as f:
         data = yaml.load(f)
-        print("--opened yaml")
+        print("--Opened yaml")
     
     # Update origin.yaml key value for tags  
     data['Tags'] = genre_string
-    print("--updated yaml")
+    print("--Updated yaml")
     
     # Write new origin.yaml file
     with open(origin_location, "w", encoding="utf-8") as f:
         yaml.dump(data, f)
-        print("--wrote yaml")
+        print("--Wrote yaml")
+        print("Genre tags have been merged successfully.")
         count += 1  # variable will increment every loop iteration
 
 # The main function that controls the flow of the script
