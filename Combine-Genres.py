@@ -20,7 +20,7 @@ import csv  # Imports functionality to parse CSV files
 
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
+album_directory = "M:\POST-PROCESS\FREEZE"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv"  # Set the location of the RED-alias.csv file.
 
@@ -481,7 +481,7 @@ def merge_genres(genre_vorbis, genre_origin, album_name):
     print(genre_origin)
     return genre_origin, diff_flag
 
-
+# A function to write the full genre list back to the origin file
 def write_origin(all_genres, origin_location):
     global count
 
