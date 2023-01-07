@@ -20,7 +20,7 @@ import csv  # Imports functionality to parse CSV files
 
 
 #  Set your directories here
-album_directory = "M:\POST-PROCESS\FREEZE"  # Which directory do you want to start with?
+album_directory = "M:\PROCESS"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv"  # Set the location of the RED-alias.csv file.
 
@@ -28,7 +28,7 @@ RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv"  # 
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
 # If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
 # The default is 1
-album_depth = 1
+album_depth = 2
 
 # Establishes the counters for completed albums and missing origin files
 count = 0
