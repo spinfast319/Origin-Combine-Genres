@@ -20,7 +20,7 @@ import csv  # Imports functionality to parse CSV files
 
 
 #  Set your directories here
-album_directory = "M:\PROCESS"  # Which directory do you want to start with?
+album_directory = "M:\POST-PROCESS\FREEZE"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv"  # Set the location of the RED-alias.csv file.
 
@@ -28,7 +28,7 @@ RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv"  # 
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
 # If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
 # The default is 1
-album_depth = 2
+album_depth = 1
 
 # Establishes the counters for completed albums and missing origin files
 count = 0
@@ -367,8 +367,10 @@ def clean_genre(genre):
     genre_nopipe = [tag.replace("|", ",") for tag in genre_noslash]
     # replace ｜ with ,
     genre_nopipe = [tag.replace("｜", ",") for tag in genre_nopipe]
+    # replace : with ,
+    genre_nocolon = [tag.replace(":", ",") for tag in genre_nopipe]
     # replace ; with ,
-    genre_nosemi = [tag.replace(";", ",") for tag in genre_nopipe]
+    genre_nosemi = [tag.replace(";", ",") for tag in genre_nocolon]
 
     # this second part uses the standardized seperators to make a new list with each item independent
     # turn list into string
@@ -476,6 +478,20 @@ def merge_genres(genre_vorbis, genre_origin, album_name):
             # print(f"--Adding {i} to the genre tags in origin file")
             genre_origin.append(i)
             diff_flag = True
+    
+    # A list of genres that should be removed
+    remove_list = ["delete.this.tag", "various.artists", " ", "", None]
+    
+    print("--Looking for genres to remove.")
+    for i in genre_origin:
+        for j in remove_list:
+            if i == j:
+                genre_origin.remove(j)
+                diff_flag = True
+                print(f"--Removed {j} from list of genres.")
+            else:
+                pass
+        
 
     # print("--The vorbis and origin tags have been cleaned and combined.")
     print(genre_origin)
