@@ -17,10 +17,12 @@ import shutil  # Imports functionality that lets you copy files and directory
 import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
 import csv  # Imports functionality to parse CSV files
+import hashlib  # Imports the ability to make a hash
+import pickle  # Imports the ability to turn python objects into bytes 
 
 
 #  Set your directories here
-album_directory = "M:\POST-PROCESS\FREEZE"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv"  # Set the location of the RED-alias.csv file.
 
@@ -554,9 +556,19 @@ def main():
             if is_flac == True:
                 # check if vorbis tag for genre is populated
                 genre_vorbis = get_vorbis_genre(i, album_name)
+                # open orgin file
+                genre_origin = get_origin_genre(i, origin_location, album_name) 
+                # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
+                genre_hash_start = hashlib.md5(pickle.dumps(genre_origin))
+                print (f"--Genre Hash Start: {genre_hash_start.hexdigest()}")
+                if genre_origin != None:
+                    print (f"--LOOK-Genre: {genre_origin}")
+                    genre_origin = clean_genre(genre_origin)
+                    # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
+                    genre_hash_end = hashlib.md5(pickle.dumps(genre_origin))
+                    print (f"--Genre Hash End: {genre_hash_end.hexdigest()}")
+                    print (f"--LOOK-Genre: {genre_origin}")
                 if genre_vorbis != None:
-                    # open orgin file
-                    genre_origin = get_origin_genre(i, origin_location, album_name)
                     if genre_origin == None:
                         pass
                     elif genre_origin == "genre.missing":
@@ -565,6 +577,9 @@ def main():
                     else:
                         # merge the genre tags
                         all_genres, diff_flag = merge_genres(genre_vorbis, genre_origin, album_name)
+                        # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
+                        genre_hash_end = hashlib.md5(pickle.dumps(all_genres))
+                        print (f"--Genre Hash End: {genre_hash_end.hexdigest()}")
                         # if there is an update write genre to tag key value pair
                         if diff_flag == True:
                             write_origin(all_genres, origin_location)
