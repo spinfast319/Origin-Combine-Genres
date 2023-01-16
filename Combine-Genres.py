@@ -560,9 +560,9 @@ def main():
                 genre_origin = get_origin_genre(i, origin_location, album_name) 
                 # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
                 genre_hash_start = hashlib.md5(pickle.dumps(genre_origin))
-                print (f"--Genre Hash Start: {genre_hash_start.hexdigest()}")
                 if genre_origin != None:
                     print (f"--LOOK-Genre: {genre_origin}")
+                    # check to see if all origin genre tags are formatted correctly
                     genre_origin = clean_genre(genre_origin)
                     # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
                     genre_hash_end = hashlib.md5(pickle.dumps(genre_origin))
@@ -576,15 +576,26 @@ def main():
                         write_origin(genre_vorbis, origin_location)
                     else:
                         # merge the genre tags
-                        all_genres, diff_flag = merge_genres(genre_vorbis, genre_origin, album_name)
+                        genre_origin, diff_flag = merge_genres(genre_vorbis, genre_origin, album_name)
                         # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
-                        genre_hash_end = hashlib.md5(pickle.dumps(all_genres))
-                        print (f"--Genre Hash End: {genre_hash_end.hexdigest()}")
+                        genre_hash_end = hashlib.md5(pickle.dumps(genre_origin))
                         # if there is an update write genre to tag key value pair
-                        if diff_flag == True:
-                            write_origin(all_genres, origin_location)
-                        else:
-                            print("No new genre tags to add to origin genre")
+                        #if diff_flag == True:
+                        #    write_origin(genre_origin, origin_location)
+                        #else:
+                        #    print("No new genre tags to add to origin genre")
+                
+                    # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
+                    genre_hash_end = hashlib.md5(pickle.dumps(genre_origin)) 
+                    print (f"--Genre Hash Start: {genre_hash_start.hexdigest()}") 
+                    print (f"--Genre Hash End  : {genre_hash_end.hexdigest()}")   
+                    if genre_hash_start.hexdigest() == genre_hash_end.hexdigest():
+                        print("--The origin tags did not change. No new genre tags to add to origin genre.")
+                    else:     
+                        print("--The origin tags changed.")                        
+                        write_origin(genre_origin, origin_location)
+
+                    
                 else:
                     print("No genre tag.")
             else:
