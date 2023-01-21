@@ -407,8 +407,6 @@ def clean_genre(genre):
     genre_clean = [tag.replace("rhythmnblues", "drum.and.bass") for tag in genre_clean]
     # replace drumandbass with drum.and.bass
     genre_clean = [tag.replace("rhythmandblues", "drum.and.bass") for tag in genre_clean]
-    # replace jungle with drum.and.bass
-    genre_clean = [tag.replace("jungle", "drum.and.bass") for tag in genre_clean]
     # replace rnb with rhythm.and.blues
     genre_clean = [tag.replace("rnb", "rhythm.and.blues") for tag in genre_clean]
     # replace r n b with rhythm.and.blues
@@ -571,13 +569,15 @@ def main():
                 if genre_origin != None:
                     # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end
                     print("--Origin genre found and added to list.")
+                    origin_genre_list = ", ".join(genre_origin)
+                    print(f"----Origin genres found --> {origin_genre_list}")
                     print("--Creating a hash of the starting origin genre list.")
                     genre_hash_start = hashlib.md5(pickle.dumps(genre_origin))
                     # check to see if all origin genre tags are formatted correctly
                     print("--Cleaning origin genre list.")
                     genre_origin = clean_genre(genre_origin)
                     origin_genre_list = ", ".join(genre_origin)
-                    print(f"----Origin genres found --> {origin_genre_list}")
+                    print(f"----Cleaned origin genres --> {origin_genre_list}")
                 else:
                     print("Due to error with origin file this album was logged and skipped.")
                     continue
