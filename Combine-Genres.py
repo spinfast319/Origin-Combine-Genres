@@ -18,7 +18,7 @@ import datetime  # Imports functionality that lets you make timestamps
 import mutagen  # Imports functionality to get metadata from music files
 import csv  # Imports functionality to parse CSV files
 import hashlib  # Imports the ability to make a hash
-import pickle  # Imports the ability to turn python objects into bytes 
+import pickle  # Imports the ability to turn python objects into bytes
 
 
 #  Set your directories here
@@ -271,7 +271,7 @@ def get_origin_genre(directory, origin_location, album_name):
                 log_list = None
                 log_outcomes(directory, log_name, log_message, log_list)
                 missing_origin_genre += 1  # variable will increment every loop iteration
-                origin_genre = "genre.missing"
+                origin_genre = ["genre.missing"]
                 return origin_genre
         else:
             print("--You need to update your origin files with more metadata.")
@@ -289,7 +289,7 @@ def get_origin_genre(directory, origin_location, album_name):
 # A function to get the vorbis genre, style and mood tags
 def get_vorbis_genre(directory, album_name):
 
-    print("--Checking for genre, style and mood tags.")
+    print("--Checking for vorbis genre, style and mood tags.")
 
     # Open track in directory and see if genre tag is populated
     for fname in os.listdir(directory):
@@ -298,40 +298,42 @@ def get_vorbis_genre(directory, album_name):
             genre = []
             tag_metadata = mutagen.File(fname)
             if "GENRE" in tag_metadata:
-                print("--Genre tag found.")
                 genre.extend(tag_metadata["GENRE"])
-                print(genre)
+                genre_list = ", ".join(tag_metadata["GENRE"])
+                print(f"----The genre tags are ----> {genre_list}")
             else:
-                print("--No genre tag.")
+                print("----No genre tags.")
                 missing_count += 1
             if "STYLE" in tag_metadata:
-                print("--Style tag found.")
                 genre.extend(tag_metadata["STYLE"])
-                print(tag_metadata["STYLE"])
+                style_list = ", ".join(tag_metadata["STYLE"])
+                print(f"----The style tags are ----> {style_list}")
             else:
-                print("--No style tag.")
+                print("----No style tags.")
                 missing_count += 1
             if "MOOD" in tag_metadata:
-                print("--Mood tag found.")
                 genre.extend(tag_metadata["MOOD"])
-                print(tag_metadata["MOOD"])
+                mood_list = ", ".join(tag_metadata["MOOD"])
+                print(f"----The mood tags are ----> {mood_list}")
             else:
-                print("--No mood tag.")
+                print("----No mood tags.")
                 missing_count += 1
 
             if missing_count == 3:
-                print("No vorbis tags found.")
+                print("--No vorbis tags found.")
                 break
             else:
-                print("--Combined genre, style and mood tags.")
-                print(genre)
+                # this is for the output and nothing else.
+                combined_genre_list = ", ".join(genre)
+                print(f"----The combined tags are --> {combined_genre_list}")
+
                 # Clean and standardize the genre
                 cleaned_genre = clean_genre(genre)
+
                 # this is for the output and nothing else.
-                print("--Cleaned tags.")
-                print(cleaned_genre)
-                genre_list = ", ".join(cleaned_genre)
-                # print (f" The genre tag is {genre_list}.")
+                clean_genre_list = ", ".join(cleaned_genre)
+                print(f"----The cleaned tags are ---> {clean_genre_list}")
+
                 return cleaned_genre
 
 
@@ -441,6 +443,8 @@ def clean_genre(genre):
     genre_nospace = [tag.replace(" ", ".") for tag in genre_clean]
     # standardize tag spelling against RED alias mapping
     cleaned_genre = [RED_alias(tag) for tag in genre_nospace]
+    # remove any tags that should not be in the list
+    cleaned_genre = remove_genres(cleaned_genre)
     return cleaned_genre
 
 
@@ -462,15 +466,31 @@ def RED_alias(genre):
     return genre
 
 
+# A function to remove genre tags that do not belong in the list
+def remove_genres(genre_origin):
+    # A list of genres that should be removed
+    remove_list = ["delete.this.tag", "various.artists", " ", "", None]
+
+    # print("--Looking for genres to remove.")
+    for i in genre_origin:
+        for j in remove_list:
+            if i == j:
+                genre_origin.remove(j)
+                print(f"--Removed {j} from list of genres.")
+            else:
+                pass
+
+    return genre_origin
+
+
 # A function to compare and merge the vorbis and origin genre tags
 def merge_genres(genre_vorbis, genre_origin, album_name):
 
-    print("--Origin tags found.")
-    print(genre_vorbis)
-    print(genre_origin)
-
-    # Set a flag to check whether the origin genre is updated
-    diff_flag = False
+    print("--Merging origin tags.")
+    written_genre_vorbis = ", ".join(genre_vorbis)
+    print(f"----The vorbis genres are ----> {written_genre_vorbis}")
+    written_genre_origin = ", ".join(genre_origin)
+    print(f"----The origin genres are ----> {written_genre_origin}")
 
     for i in genre_vorbis:
         if i in genre_origin:
@@ -479,25 +499,15 @@ def merge_genres(genre_vorbis, genre_origin, album_name):
         else:
             # print(f"--Adding {i} to the genre tags in origin file")
             genre_origin.append(i)
-            diff_flag = True
-    
-    # A list of genres that should be removed
-    remove_list = ["delete.this.tag", "various.artists", " ", "", None]
-    
-    print("--Looking for genres to remove.")
-    for i in genre_origin:
-        for j in remove_list:
-            if i == j:
-                genre_origin.remove(j)
-                diff_flag = True
-                print(f"--Removed {j} from list of genres.")
-            else:
-                pass
-        
+
+    # remove any tags that should not be in the list
+    genre_origin = remove_genres(genre_origin)
 
     # print("--The vorbis and origin tags have been cleaned and combined.")
-    print(genre_origin)
-    return genre_origin, diff_flag
+    written_genre_origin = ", ".join(genre_origin)
+    print(f"----The combined genres are --> {written_genre_origin}")
+    return genre_origin
+
 
 # A function to write the full genre list back to the origin file
 def write_origin(all_genres, origin_location):
@@ -517,16 +527,16 @@ def write_origin(all_genres, origin_location):
     # Open origin.yaml file
     with open(origin_location, encoding="utf-8") as f:
         data = yaml.load(f)
-        print("--Opened yaml")
+        print("----Opened yaml")
 
     # Update origin.yaml key value for tags
     data["Tags"] = genre_string
-    print("--Updated yaml")
+    print("----Updated yaml")
 
     # Write new origin.yaml file
     with open(origin_location, "w", encoding="utf-8") as f:
         yaml.dump(data, f)
-        print("--Wrote yaml")
+        print("----Wrote yaml")
         print("Genre tags have been merged successfully.")
         count += 1  # variable will increment every loop iteration
 
@@ -554,50 +564,64 @@ def main():
             # check for flac
             is_flac = flac_check(i)
             if is_flac == True:
-                # check if vorbis tag for genre is populated
-                genre_vorbis = get_vorbis_genre(i, album_name)
-                # open orgin file
-                genre_origin = get_origin_genre(i, origin_location, album_name) 
-                # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
-                genre_hash_start = hashlib.md5(pickle.dumps(genre_origin))
+                # open orgin file, identify and log missing origin files, old origin files and parse errors, tag when genre is missing
+                genre_origin = get_origin_genre(i, origin_location, album_name)
+
+                # prepare origin genre tags for merge
                 if genre_origin != None:
-                    print (f"--LOOK-Genre: {genre_origin}")
+                    # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end
+                    print("--Origin genre found and added to list.")
+                    print("--Creating a hash of the starting origin genre list.")
+                    genre_hash_start = hashlib.md5(pickle.dumps(genre_origin))
                     # check to see if all origin genre tags are formatted correctly
+                    print("--Cleaning origin genre list.")
                     genre_origin = clean_genre(genre_origin)
-                    # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
-                    genre_hash_end = hashlib.md5(pickle.dumps(genre_origin))
-                    print (f"--Genre Hash End: {genre_hash_end.hexdigest()}")
-                    print (f"--LOOK-Genre: {genre_origin}")
+                    origin_genre_list = ", ".join(genre_origin)
+                    print(f"----Origin genres found --> {origin_genre_list}")
+                else:
+                    print("Due to error with origin file this album was logged and skipped.")
+                    continue
+
+                # check if vorbis tag for genre, style or mood is is populated, combine and clean them
+                genre_vorbis = get_vorbis_genre(i, album_name)
+
+                # merge the tags
                 if genre_vorbis != None:
                     if genre_origin == None:
                         pass
-                    elif genre_origin == "genre.missing":
-                        # if the origin file does not have a genre and the vorbis exists then write vorbis tag to origin
-                        write_origin(genre_vorbis, origin_location)
+                    elif genre_origin == ["genre.missing"]:
+                        # if the origin file does not have a genre and the vorbis exists then write vorbis tag to the origin list
+                        vorbis_genre_list = ", ".join(genre_vorbis)
+                        print(f"--Writing vorbis tags to origin list --> {vorbis_genre_list}")
+                        genre_origin = genre_vorbis
                     else:
                         # merge the genre tags
-                        genre_origin, diff_flag = merge_genres(genre_vorbis, genre_origin, album_name)
-                        # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
-                        genre_hash_end = hashlib.md5(pickle.dumps(genre_origin))
-                        # if there is an update write genre to tag key value pair
-                        #if diff_flag == True:
-                        #    write_origin(genre_origin, origin_location)
-                        #else:
-                        #    print("No new genre tags to add to origin genre")
-                
-                    # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end                    
-                    genre_hash_end = hashlib.md5(pickle.dumps(genre_origin)) 
-                    print (f"--Genre Hash Start: {genre_hash_start.hexdigest()}") 
-                    print (f"--Genre Hash End  : {genre_hash_end.hexdigest()}")   
-                    if genre_hash_start.hexdigest() == genre_hash_end.hexdigest():
-                        print("--The origin tags did not change. No new genre tags to add to origin genre.")
-                    else:     
-                        print("--The origin tags changed.")                        
-                        write_origin(genre_origin, origin_location)
-
-                    
+                        genre_origin = merge_genres(genre_vorbis, genre_origin, album_name)
                 else:
-                    print("No genre tag.")
+                    if genre_origin == None:
+                        print("There are no vorbis tags and no origin tags. This album has been logged.")
+                        continue
+                    if genre_origin == ["genre.missing"]:
+                        print("There are no vorbis tags and no origin tags. This album has been logged.")
+                        continue
+                    else:
+                        pass
+
+                # check if the orgin tag has been updated and write updated tags to the origin file if it has
+                # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end
+                genre_hash_end = hashlib.md5(pickle.dumps(genre_origin))
+                print("--Comparing original origin genre list to final genre list.")
+                print(f"----Genre Hash Start: {genre_hash_start.hexdigest()}")
+                print(f"----Genre Hash End  : {genre_hash_end.hexdigest()}")
+
+                # compare starting hash and ending hash and if there is an update write genre to origin tag key value pair
+                if genre_hash_start.hexdigest() == genre_hash_end.hexdigest():
+                    print("The origin tags did not change. No new genre tags to add to origin file.")
+                else:
+                    print("--The origin tags changed.")
+                    print("--Writing final genres to origin file. ")
+                    write_origin(genre_origin, origin_location)
+
             else:
                 print("No flac files.")
 
@@ -608,6 +632,83 @@ def main():
         # run summary text function to provide error messages
         summary_text()
         print("")
+
+
+"""# The main function that controls the flow of the script
+def main():
+
+    try:
+        # intro text
+        print("")
+        print("Join me, and together...")
+        print("")
+
+        # Get all the subdirectories of album_directory recursively and store them in a list:
+        directories = [os.path.abspath(x[0]) for x in os.walk(album_directory)]
+        directories.remove(os.path.abspath(album_directory))  # If you don't want your main directory included
+
+        #  Run a loop that goes into each directory identified in the list and runs the genre merging process
+        for i in directories:
+            os.chdir(i)  # Change working Directory
+            print("")
+            print("Merging genres starting.")
+            # establish directory level
+            origin_location, album_name = level_check(i)
+            # check for flac
+            is_flac = flac_check(i)
+            if is_flac == True:
+                # check if vorbis tag for genre is populated
+                genre_vorbis = get_vorbis_genre(i, album_name)
+                # open orgin file
+                genre_origin = get_origin_genre(i, origin_location, album_name)
+                print(f"LOOK2: {genre_origin}")
+                # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end
+                genre_hash_start = hashlib.md5(pickle.dumps(genre_origin))
+                if genre_origin != None:
+                    # check to see if all origin genre tags are formatted correctly
+                    genre_origin = clean_genre(genre_origin)
+                    # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end
+                    genre_hash_end = hashlib.md5(pickle.dumps(genre_origin))
+                if genre_vorbis != None:
+                    if genre_origin == None:
+                        pass
+                    elif genre_origin == ["genre.missing"]:
+                        # if the origin file does not have a genre and the vorbis exists then write vorbis tag to origin
+                        vorbis_genre_list = ", ".join(genre_vorbis)
+                        print (f"--Writing vorbis tags to origin file --> {vorbis_genre_list}")
+                        write_origin(genre_vorbis, origin_location)
+                    else:
+                        # merge the genre tags
+                        genre_origin = merge_genres(genre_vorbis, genre_origin, album_name)
+                        # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end
+                        genre_hash_end = hashlib.md5(pickle.dumps(genre_origin))
+
+                    # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end
+                    genre_hash_end = hashlib.md5(pickle.dumps(genre_origin))
+                    print("--Comparing original origin genre list to final genre list.")
+                    print(f"----Genre Hash Start: {genre_hash_start.hexdigest()}")
+                    print(f"----Genre Hash End  : {genre_hash_end.hexdigest()}")
+                    
+                    # compare starting hash and ending hash and if there is an update write genre to origin tag key value pair
+                    if genre_hash_start.hexdigest() == genre_hash_end.hexdigest():
+                        print("The origin tags did not change. No new genre tags to add to origin file.")
+                    else:
+                        print("--The origin tags changed.")
+                        print("--Writing final genres to origin file. ")
+                        write_origin(genre_origin, origin_location)
+
+                else:
+                    print("--The flac file had no vorbis genre tag.")
+                    print("There were no tags to merge or clean and the origin file did not need to be updated.")
+            else:
+                print("No flac files.")
+    finally:
+        # Summary text
+        print("")
+        print("...we can rule the galaxy as father and son.")
+        # run summary text function to provide error messages
+        summary_text()
+        print("")"""
 
 
 if __name__ == "__main__":
