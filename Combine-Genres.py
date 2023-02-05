@@ -20,17 +20,18 @@ import csv  # Imports functionality to parse CSV files
 import hashlib  # Imports the ability to make a hash
 import pickle  # Imports the ability to turn python objects into bytes
 
+#  Set the location of the local directory
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 #  Set your directories here
 album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
-RED_alias_list = "M:\music-util\origin-scripts\Combine-Genres\RED-alias.csv"  # Set the location of the RED-alias.csv file.
 
 # Set whether you are using nested folders or have all albums in one directory here
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
 # If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
 # The default is 1
-album_depth = 1
+album_depth = 2
 
 # Establishes the counters for completed albums and missing origin files
 count = 0
@@ -256,12 +257,16 @@ def get_origin_genre(directory, origin_location, album_name):
 
             # turn the data into variable
             origin_genre = data["Tags"]
+            artist_name = data["Artist"]
+            album_name = data["Name"]
+            original_year = data["Original year"]
+            release_data = [artist_name, album_name, original_year]
             if origin_genre != None:
                 # remove spaces in comma delimited string
                 origin_genre = origin_genre.replace(" ", "")
                 # turn string into list
                 origin_genre = origin_genre.split(",")
-                return origin_genre
+                return origin_genre, release_data
             else:
                 # log the missing genre tag information in origin file
                 print("--There are no genre tags in the origin file.")
@@ -272,7 +277,7 @@ def get_origin_genre(directory, origin_location, album_name):
                 log_outcomes(directory, log_name, log_message, log_list)
                 missing_origin_genre += 1  # variable will increment every loop iteration
                 origin_genre = ["genre.missing"]
-                return origin_genre
+                return origin_genre, release_data
         else:
             print("--You need to update your origin files with more metadata.")
             print("--Switch to the gazelle-origin fork here: https://github.com/spinfast319/gazelle-origin")
@@ -448,10 +453,9 @@ def clean_genre(genre):
 
 # A function to use RED alias tags to have consistency in genres
 def RED_alias(genre):
-    global RED_alias_list
 
     # Open CSV of alias mappings, create list of tuples
-    with open(RED_alias_list, encoding="utf-8") as f:
+    with open(os.path.join(__location__, 'RED-alias.csv'), encoding="utf-8") as f:
         reader = csv.reader(f)
         RED_list = list(tuple(line) for line in reader)
 
@@ -563,14 +567,14 @@ def main():
             is_flac = flac_check(i)
             if is_flac == True:
                 # open orgin file, identify and log missing origin files, old origin files and parse errors, tag when genre is missing
-                genre_origin = get_origin_genre(i, origin_location, album_name)
+                genre_origin, release_data = get_origin_genre(i, origin_location, album_name)
 
                 # prepare origin genre tags for merge
                 if genre_origin != None:
                     # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end
                     print("--Origin genre found and added to list.")
                     origin_genre_list = ", ".join(genre_origin)
-                    print(f"----Origin genres found --> {origin_genre_list}")
+                    print(f"----Origin genres found ----> {origin_genre_list}")
                     print("--Creating a hash of the starting origin genre list.")
                     genre_hash_start = hashlib.md5(pickle.dumps(genre_origin))
                     # check to see if all origin genre tags are formatted correctly
@@ -621,6 +625,14 @@ def main():
                     print("--The origin tags changed.")
                     print("--Writing final genres to origin file. ")
                     write_origin(genre_origin, origin_location)
+                    
+                print("")
+                print("==========")
+                print(f"Album ---> {release_data[0]} - {release_data[1]} ({release_data[2]})")
+                written_genre_origin = ", ".join(genre_origin)
+                print(f"Genres --> {written_genre_origin}")
+                print("==========")
+                
 
             else:
                 print("No flac files.")
