@@ -24,7 +24,7 @@ import pickle  # Imports the ability to turn python objects into bytes
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
+album_directory = "M:\PROCESS"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
@@ -53,7 +53,7 @@ album_location_check = segments + album_depth
 def log_outcomes(directory, log_name, message, log_list):
     global log_directory
 
-    script_name = "Origin Write Tags Script"
+    script_name = "Combine Genres Script"
     today = datetime.datetime.now()
     log_name = f"{log_name}.txt"
     album_name = directory.split(os.sep)
@@ -229,6 +229,9 @@ def get_origin_genre(directory, origin_location, album_name):
     file_exists = check_file(directory)
     # check to see the origin file location variable exists
     location_exists = os.path.exists(origin_location)
+    # set up variables that will be pulled from origin file to avoid None type errors
+    origin_genre = []
+    release_data = []
 
     if location_exists == True:
         print("--The origin file location is valid.")
@@ -250,7 +253,7 @@ def get_origin_genre(directory, origin_location, album_name):
             log_list = None
             log_outcomes(directory, log_name, log_message, log_list)
             parse_error += 1  # variable will increment every loop iteration
-            return
+            return origin_genre, release_data
         # check to see if the origin file has the corect metadata
         if "Cover" in data.keys():
             print("--You are using the correct version of gazelle-origin.")
@@ -289,6 +292,17 @@ def get_origin_genre(directory, origin_location, album_name):
             log_list = None
             log_outcomes(directory, log_name, log_message, log_list)
             origin_old += 1  # variable will increment every loop iteration
+            return origin_genre, release_data
+    else:
+        # log the missing origin file folders that are not likely supposed to be missing
+        print("--An origin file is missing from a folder that should have one.")
+        print("--Logged missing origin file.")
+        log_name = "bad-missing-origin"
+        log_message = "origin file is missing from a folder that should have one"
+        log_list = None
+        log_outcomes(directory, log_name, log_message, log_list)
+        bad_missing += 1  # variable will increment every loop iteration    
+        return origin_genre, release_data    
 
 
 # A function to get the vorbis genre, style and mood tags
@@ -471,7 +485,22 @@ def RED_alias(genre):
 # A function to remove genre tags that do not belong in the list
 def remove_genres(genre_origin):
     # A list of genres that should be removed
-    remove_list = ["delete.this.tag", "various.artists", " ", "", None]
+    remove_list = [
+        "freely.available", 
+        "hardcore.to.sort", 
+        "other", 
+        "misc", 
+        "miscellaneous", 
+        "delete.this.tag", 
+        "unknown", 
+        "various.artists",
+        "танцевальная.музыка",
+        "альтернативная.музыка",
+        "злектронная.музыкаа",
+        " ", 
+        "", 
+        None
+    ]
 
     # print("--Looking for genres to remove.")
     for i in genre_origin:
@@ -570,7 +599,7 @@ def main():
                 genre_origin, release_data = get_origin_genre(i, origin_location, album_name)
 
                 # prepare origin genre tags for merge
-                if genre_origin != None:
+                if genre_origin != []:
                     # create a hash of the origin_genre list so we can track it and see if it changes and write changes back to the file at the end
                     print("--Origin genre found and added to list.")
                     origin_genre_list = ", ".join(genre_origin)
@@ -591,7 +620,7 @@ def main():
 
                 # merge the tags
                 if genre_vorbis != None:
-                    if genre_origin == None:
+                    if genre_origin == []:
                         pass
                     elif genre_origin == ["genre.missing"]:
                         # if the origin file does not have a genre and the vorbis exists then write vorbis tag to the origin list
@@ -602,7 +631,7 @@ def main():
                         # merge the genre tags
                         genre_origin = merge_genres(genre_vorbis, genre_origin, album_name)
                 else:
-                    if genre_origin == None:
+                    if genre_origin == []:
                         print("There are no vorbis tags and no origin tags. This album has been logged.")
                         continue
                     if genre_origin == ["genre.missing"]:
@@ -625,7 +654,8 @@ def main():
                     print("--The origin tags changed.")
                     print("--Writing final genres to origin file. ")
                     write_origin(genre_origin, origin_location)
-                    
+                
+                # print a verbose and easy to scan CLI outpup for manual review    
                 print("")
                 print("==========")
                 print(f"Album ---> {release_data[0]} - {release_data[1]} ({release_data[2]})")
