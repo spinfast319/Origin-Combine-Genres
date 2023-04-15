@@ -24,14 +24,14 @@ import pickle  # Imports the ability to turn python objects into bytes
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 #  Set your directories here
-album_directory = "M:\PROCESS"  # Which directory do you want to start with?
+album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
 log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
 # If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
 # The default is 1
-album_depth = 2
+album_depth = 1
 
 # Establishes the counters for completed albums and missing origin files
 count = 0
@@ -301,8 +301,8 @@ def get_origin_genre(directory, origin_location, album_name):
         log_message = "origin file is missing from a folder that should have one"
         log_list = None
         log_outcomes(directory, log_name, log_message, log_list)
-        bad_missing += 1  # variable will increment every loop iteration    
-        return origin_genre, release_data    
+        bad_missing += 1  # variable will increment every loop iteration
+        return origin_genre, release_data
 
 
 # A function to get the vorbis genre, style and mood tags
@@ -469,7 +469,7 @@ def clean_genre(genre):
 def RED_alias(genre):
 
     # Open CSV of alias mappings, create list of tuples
-    with open(os.path.join(__location__, 'RED-alias.csv'), encoding="utf-8") as f:
+    with open(os.path.join(__location__, "RED-alias.csv"), encoding="utf-8") as f:
         reader = csv.reader(f)
         RED_list = list(tuple(line) for line in reader)
 
@@ -486,20 +486,24 @@ def RED_alias(genre):
 def remove_genres(genre_origin):
     # A list of genres that should be removed
     remove_list = [
-        "freely.available", 
-        "hardcore.to.sort", 
-        "other", 
-        "misc", 
-        "miscellaneous", 
-        "delete.this.tag", 
-        "unknown", 
+        "freely.available",
+        "hardcore.to.sort",
+        "other",
+        "misc",
+        "miscellaneous",
+        "delete.this.tag",
+        "unknown",
         "various.artists",
         "танцевальная.музыка",
         "альтернативная.музыка",
         "злектронная.музыкаа",
-        " ", 
-        "", 
-        None
+        "электронная.музыка",
+        "compilation",
+        "техно",
+        "хаус",
+        " ",
+        "",
+        None,
     ]
 
     # print("--Looking for genres to remove.")
@@ -654,15 +658,14 @@ def main():
                     print("--The origin tags changed.")
                     print("--Writing final genres to origin file. ")
                     write_origin(genre_origin, origin_location)
-                
-                # print a verbose and easy to scan CLI outpup for manual review    
+
+                # print a verbose and easy to scan CLI outpup for manual review
                 print("")
                 print("==========")
                 print(f"Album ---> {release_data[0]} - {release_data[1]} ({release_data[2]})")
                 written_genre_origin = ", ".join(genre_origin)
                 print(f"Genres --> {written_genre_origin}")
                 print("==========")
-                
 
             else:
                 print("No flac files.")
