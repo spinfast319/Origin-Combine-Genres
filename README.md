@@ -1,4 +1,4 @@
-# Combine-Genres
+# Origin Combine-Genres
 ### A python script loops through a directory looking for flac files, looks at whether there is data in the flac's genre, style and mood vorbis tags and if there is, it adds them to the associated origin file.
 
 Origin files will have genre related tags pulls from the source site of the music.  While the genre tags at the source are often correct they can be wrong or incomplete and in very rare instances missing altogether.  Before writing the genre tags from the origin files to the flac vorbis comments, this script checks to see if the flac files have either genre, mood or style tags already.  If they are present it grabs them and reformats them to match the exact tagging format of the site generating the origin files. It uses the full alias matching of that site to ensure tags are combined in non-duplicative ways. The script then combines them with the tags in the origin file. It removes redundent and non-relevant tags leaving the origin file with a clean set of combined genre tags written to the Tag: field of the origin file.  
@@ -41,10 +41,10 @@ pip install ruamel.yaml
 6) Use your terminal to navigate to the directory the script is in and run the script from the command line.  When it finishes it will output how many albums have combined tags and if you scroll up the output will show you the final tags in an easy to read way.
 
 ```
-Combine-Genres.py
+Origin-Combine-Genres.py
 ```
 
-_note: on linux and mac you will likely need to type "python3 Combine-Genres.py"_  
+_note: on linux and mac you will likely need to type "python3 Origin-Combine-Genres.py"_  
 _note 2: you can run the script from anywhere if you provide the full path to it_
 
 The script will also create logs listing any album that is missing genre tags in both the origin files and flac files.  
