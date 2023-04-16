@@ -1,4 +1,4 @@
-# Combine Genres
+# Origin Combine Genres
 # author: hypermodified
 # This python script loops through a directory, looks at whether there is data in the genre vorbis tag and if there is opens it and adds it to the associated origin file.
 # This script add the genre to the Tags field in the orgin file.
@@ -24,8 +24,8 @@ import pickle  # Imports the ability to turn python objects into bytes
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 #  Set your directories here
-album_directory = "M:\Python Test Environment\Albums"  # Which directory do you want to start with?
-log_directory = "M:\Python Test Environment\Logs"  # Which directory do you want the log in?
+album_directory = "M:\PROCESS"  # Which directory do you want to start with?
+log_directory = "M:\PROCESS-LOGS\Logs"  # Which directory do you want the log in?
 
 # Set whether you are using nested folders or have all albums in one directory here
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
