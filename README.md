@@ -1,4 +1,4 @@
-# Origin Combine-Genres now
+# Origin Combine-Genres
 ### A python script loops through a directory looking for flac files, looks at whether there is data in the flac's genre, style and mood vorbis tags and if there is, it adds them to the associated origin file.
 
 Origin files will have genre related tags pulls from the source site of the music.  While the genre tags at the source are often correct they can be wrong or incomplete and in very rare instances missing altogether.  Before writing the genre tags from the origin files to the flac vorbis comments, this script checks to see if the flac files have either genre, mood or style tags already.  If they are present it grabs them and reformats them to match the exact tagging format of the site generating the origin files. It uses the full alias matching of that site to ensure tags are combined in non-duplicative ways. The script then combines them with the tags in the origin file. It removes redundent and non-relevant tags leaving the origin file with a clean set of combined genre tags written to the Tag: field of the origin file.  
