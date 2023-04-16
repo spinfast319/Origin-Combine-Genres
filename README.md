@@ -38,7 +38,7 @@ pip install ruamel.yaml
     A. If you have all your ablums in one music directory, ie. Music/Album then set this value to 1 (the default)  
     B. If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
 
-6) Use your terminal to navigate to the directory the script is in and run the script from the command line.  When it finishes it will output how many albums were moved for missing tags.
+6) Use your terminal to navigate to the directory the script is in and run the script from the command line.  When it finishes it will output how many albums have combined tags and if you scroll up the output will show you the final tags in an easy to read way.
 
 ```
 Combine-Genres.py
