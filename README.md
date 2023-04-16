@@ -30,7 +30,7 @@ pip install ruamel.yaml
 
 4) Edit the script where it says _Set your directories here_ to set up or specify two directories you will be using. Write them as absolute paths for:
 
-    A. The directory where the albums you want search and combine genre tags
+    A. The directory where the albums you want to examine for missing tags are stored  
     B. The directory to store the log files the script creates  
 
 5) Edit the script where it says _Set whether you are using nested folders_ to specify whether you are using nested folders or have all albums in one directory 
