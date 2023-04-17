@@ -14,7 +14,7 @@ This project has a dependency on the gazelle-origin project created by x1ppy. ga
 
 All your albums will need origin files origin files associated with them already for this script to work.
 
-It also has a dependcies on the python project _Mutagen_ and _ruamel yaml_ which are libraries for manipulating music metadata and yaml files respectively. Instructions on installing them are below.
+It also has a dependencies on the python projects _Mutagen_ and _ruamel yaml_ which are libraries for manipulating music metadata and yaml files respectively. Instructions on installing them are below.
 
 ## Install and set up
 1) Clone this script where you want to run it.
