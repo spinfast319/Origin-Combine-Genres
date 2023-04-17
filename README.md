@@ -5,9 +5,16 @@ Origin files will have genre related tags pulls from the source site of the musi
 
 It does not alter the flac files in any way allowing for the files to be seeded. This script is meant to be used with another script that writes the tags to the flac files vorbis comments overwriting what is there. 
 
-This project has a dependency on the gazelle-origin project created by x1ppy. gazelle-origin scrapes gazelle based sites and stores the related music metadata in a yaml file in the music albums folder. For this script to work you need to use a fork that has additional metadata including the cover art. The fork that has the most additional metadata right now is: https://github.com/spinfast319/gazelle-origin
-
 This has only been tested to work with flac files and would need to be modified to work with mp3 or other types of music files. The script can handle albums with artwork folders or multiple disc folders in them. It can also handle specials characters. It has been tested and works in both Ubuntu Linux and Windows 10.
+
+This script is meant to work in conjunction with other for managing a large music library when the source of the music has good meta data you want to use to organize it.  You can find an overview of the scripts and workflow at [Origin-Music-Management](https://github.com/spinfast319/Origin-Music-Management). 
+
+## Dependencies
+This project has a dependency on the gazelle-origin project created by x1ppy. gazelle-origin scrapes gazelle based sites and stores the related music metadata in a yaml file in the music albums folder. For this script to work you need to use a fork that has additional metadata including the tags and coverart. The fork that has the most additional metadata right now is: https://github.com/spinfast319/gazelle-origin
+
+All your albums will need origin files origin files associated with them already for this script to work.
+
+It also has a dependcies on the python project _Mutagen_ and _ruamel yaml_ which are libraries for manipulating music metadata and yaml files respectively. Instructions on installing them are below.
 
 ## Install and set up
 1) Clone this script where you want to run it.
