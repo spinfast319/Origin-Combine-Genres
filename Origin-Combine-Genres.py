@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # Origin Combine Genres
 # author: hypermodified
 # This python script loops through a directory, looks at whether there is data in the genre vorbis tag and if there is opens it and adds it to the associated origin file.
