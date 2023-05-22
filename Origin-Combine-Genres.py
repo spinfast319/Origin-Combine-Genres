@@ -33,7 +33,7 @@ log_directory = "M:\PROCESS-LOGS\Logs"  # Which directory do you want the log in
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
 # If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
 # The default is 1
-album_depth = 1
+album_depth = 2
 
 # Establishes the counters for completed albums and missing origin files
 count = 0
@@ -164,7 +164,7 @@ def flac_check(directory):
 
     # Loop through the directory and see if any file is a flac
     for fname in os.listdir(directory):
-        if fname.endswith(".flac"):
+        if fname.lower().endswith(".flac"):
             print("--There are flac in this directory.")
             return True
 
@@ -314,7 +314,7 @@ def get_vorbis_genre(directory, album_name):
 
     # Open track in directory and see if genre tag is populated
     for fname in os.listdir(directory):
-        if fname.endswith(".flac"):
+        if fname.lower().endswith(".flac"):
             missing_count = 0
             genre = []
             tag_metadata = mutagen.File(fname)
