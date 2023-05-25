@@ -22,6 +22,8 @@ import csv  # Imports functionality to parse CSV files
 import hashlib  # Imports the ability to make a hash
 import pickle  # Imports the ability to turn python objects into bytes
 
+import origin_script_library as osl  # Imports common code used across all origin scripts
+
 #  Set the location of the local directory
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -575,20 +577,7 @@ def write_origin(all_genres, origin_location):
         yaml.dump(data, f)
         print("----Wrote yaml")
         print("Genre tags have been merged successfully.")
-        count += 1  # variable will increment every loop iteration
-
-
-# Get all the subdirectories of album_directory recursively and store them in a list
-def set_directory(album_directory):   
-    try:
-        directories = [os.path.abspath(x[0]) for x in os.walk(album_directory)]
-        directories.remove(os.path.abspath(album_directory))  # If you don't want your main directory included
-    except:
-        print("")
-        print("--Error: There is a problem with the directory the script is trying to run in.")
-        print("----Search the script for the phrase \'#  Set your directories here\'")
-        print("----Check the the variable called \'album_directory\' to make sure the directory assigned to that variable exists.")    
-    return directories   
+        count += 1  # variable will increment every loop iteration 
 
 
 # The main function that controls the flow of the script
@@ -601,7 +590,7 @@ def main():
         print("")
 
         # Get all the subdirectories of album_directory recursively and store them in a list
-        directories = set_directory(album_directory)
+        directories = osl.set_directory(album_directory)
 
         #  Run a loop that goes into each directory identified in the list and runs the genre merging process
         for i in directories:
