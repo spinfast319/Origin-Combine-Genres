@@ -35,7 +35,7 @@ log_directory = "M:\PROCESS-LOGS\Logs"  # Which directory do you want the log in
 # If you have all your ablums in one music directory Music/Album_name then set this value to 1
 # If you have all your albums nest in a Music/Artist/Album style of pattern set this value to 2
 # The default is 1
-album_depth = 2
+album_depth = 1
 
 # Establishes the counters for completed albums and missing origin files
 count = 0
